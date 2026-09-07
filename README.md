@@ -5,7 +5,7 @@ ThreatLens is an AI-powered cybersecurity investigation agent focused on Identit
 ## Team Members
 
 - Cristian Costilla
-- Angel Becerra
+- Angel Becerra Errazu
 
 ## Contact
 
