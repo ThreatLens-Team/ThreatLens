@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import { mockEvents } from "../data/mockEvents";
 import "./EventTable.css";
 
-function EventTable() {
+function EventTable({ onInvestigate }) {
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState("All");
   const [eventType, setEventType] = useState("All");
@@ -143,7 +143,7 @@ function EventTable() {
                   <button
                     type="button"
                     className="investigate-btn"
-                    onClick={() => handleInvestigate(event)}
+                    onClick={() => onInvestigate(event)}
                   >
                     Investigate
                   </button>

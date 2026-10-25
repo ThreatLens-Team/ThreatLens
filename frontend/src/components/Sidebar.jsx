@@ -1,7 +1,7 @@
 
 import "./Sidebar.css";
 
-function Sidebar() {
+function Sidebar({ currentPage, onNavigate }) {
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -13,19 +13,37 @@ function Sidebar() {
         <p className="sidebar-label">WORKSPACE</p>
 
         <nav className="sidebar-nav">
-          <button className="nav-item active">
+          <button
+            className={`nav-item ${
+              currentPage === "overview" ? "active" : ""
+            }`}
+            onClick={() => onNavigate("overview")}
+          >
             Overview
           </button>
 
-          <button className="nav-item">
+          <button
+            className="nav-item"
+            disabled
+            title="Coming in a future milestone"
+          >
             Security Analytics
           </button>
 
-          <button className="nav-item">
+          <button
+            className={`nav-item ${
+              currentPage === "investigations" ? "active" : ""
+            }`}
+            onClick={() => onNavigate("investigations")}
+          >
             Investigations
           </button>
 
-          <button className="nav-item">
+          <button
+            className="nav-item"
+            disabled
+            title="Coming in a future milestone"
+          >
             Settings
           </button>
         </nav>
@@ -33,6 +51,7 @@ function Sidebar() {
 
       <div className="sidebar-user">
         <div className="user-avatar">JD</div>
+
         <div>
           <p className="user-name">Demo Analyst</p>
           <p className="user-role">Security Analyst</p>
