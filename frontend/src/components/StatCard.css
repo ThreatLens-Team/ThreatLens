@@ -1,0 +1,35 @@
+
+.stat-card {
+    background: #191919;
+    border: 1px solid #2b2b2b;
+    border-radius: 9px;
+    padding: 22px;
+    min-height: 135px;
+  }
+  
+  .stat-card-title {
+    color: #a5a5a5;
+    font-size: 13px;
+  }
+  
+  .stat-card-value {
+    font-size: 30px;
+    font-weight: 700;
+    margin: 18px 0 8px;
+    color: #f5f5f5;
+  }
+  
+  .stat-card-subtitle {
+    margin: 0;
+    font-size: 12px;
+    color: #888;
+  }
+  
+  .stat-card--danger {
+    border-color: #503030;
+  }
+  
+  .stat-card--danger .stat-card-subtitle {
+    color: #e57373;
+  }
+  
