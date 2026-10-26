@@ -1,3 +1,6 @@
+from pydantic import BaseModel, Field
+from openai import OpenAIError
+from ai_agent import investigate_event
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
@@ -38,3 +41,29 @@ def get_splunk_events():
             status_code=502,
             detail="Unable to retrieve events from Splunk"
         )
+
+class InvestigationRequest(BaseModel):
+    event: dict = Field(
+        ...,
+        description="Synthetic sanitized IAM event"
+    )
+
+
+@app.post("/api/ai/investigate")
+async def ai_investigate(request: InvestigationRequest):
+    try:
+        investigation = await investigate_event(
+            request.event
+        )
+
+        return {
+            "status": "ok",
+            "investigation": investigation
+        }
+
+    except (OpenAIError, RuntimeError):
+        raise HTTPException(
+            status_code=502,
+            detail="Unable to complete AI investigation"
+        )
+
