@@ -1,7 +1,21 @@
 
 import "./Sidebar.css";
 
-function Sidebar({ currentPage, onNavigate }) {
+function Sidebar({
+  currentPage,
+  onNavigate,
+  user,
+  onLogout,
+  logoutLoading,
+}) {
+  const userEmail = user?.email || "Unknown user";
+  const userRole = user?.role || "analyst";
+
+  const initials = userEmail
+    .split("@")[0]
+    .slice(0, 2)
+    .toUpperCase();
+
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
@@ -14,6 +28,7 @@ function Sidebar({ currentPage, onNavigate }) {
 
         <nav className="sidebar-nav">
           <button
+            type="button"
             className={`nav-item ${
               currentPage === "overview" ? "active" : ""
             }`}
@@ -23,6 +38,7 @@ function Sidebar({ currentPage, onNavigate }) {
           </button>
 
           <button
+            type="button"
             className="nav-item"
             disabled
             title="Coming in a future milestone"
@@ -31,6 +47,7 @@ function Sidebar({ currentPage, onNavigate }) {
           </button>
 
           <button
+            type="button"
             className={`nav-item ${
               currentPage === "investigations" ? "active" : ""
             }`}
@@ -40,6 +57,7 @@ function Sidebar({ currentPage, onNavigate }) {
           </button>
 
           <button
+            type="button"
             className="nav-item"
             disabled
             title="Coming in a future milestone"
@@ -50,12 +68,29 @@ function Sidebar({ currentPage, onNavigate }) {
       </div>
 
       <div className="sidebar-user">
-        <div className="user-avatar">JD</div>
-
-        <div>
-          <p className="user-name">Demo Analyst</p>
-          <p className="user-role">Security Analyst</p>
+        <div className="user-avatar">
+          {initials}
         </div>
+
+        <div className="sidebar-user-info">
+          <p className="user-name">{userEmail}</p>
+          <p className="user-role">
+            {userRole === "admin"
+              ? "ThreatLens Administrator"
+              : "Security Analyst"}
+          </p>
+        </div>
+      </div>
+
+      <div className="sidebar-logout">
+        <button
+          type="button"
+          className="logout-button"
+          onClick={onLogout}
+          disabled={logoutLoading}
+        >
+          {logoutLoading ? "Signing Out..." : "Sign Out"}
+        </button>
       </div>
     </aside>
   );

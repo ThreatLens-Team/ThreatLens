@@ -1,27 +1,30 @@
 
 import { useState } from "react";
 import "./Login.css";
+import { login } from "../services/auth";
 
 function Login({ onLogin }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
+    setLoading(true);
 
-    if (!email.trim() || !password) {
-      setError("Please enter your email and password.");
-      return;
+    try {
+      const result = await login(email, password);
+
+      // Notify App.jsx that authentication succeeded.
+      onLogin(result.user);
+    } catch (error){
+      setError(error.message);
+    } finally{
+      setLoading(false);
     }
-
-    // Authentication will be implemented in Commit 4.
-    // Do not grant access before FastAPI verifies credentials.
-    setError(
-      "Login authentication is not connected yet."
-    );
   };
 
   return (
@@ -97,8 +100,9 @@ function Login({ onLogin }) {
           <button
             className="login-submit"
             type="submit"
+            disabled={loading}
           >
-            Sign In
+            {loading ? "Signing In..." : "Sign In"}
           </button>
 
           <p className="login-notice">

@@ -1,20 +1,55 @@
+
 import { useEffect, useState } from "react";
 import Sidebar from "./components/Sidebar";
 import StatCard from "./components/StatCard";
 import EventTable from "./components/EventTable";
 import Investigations from "./pages/Investigations";
 import Login from "./pages/Login";
+
+import {
+  getCurrentUser,
+  logout,
+} from "./services/auth";
+
 import "./App.css";
 
 function App() {
+  const [user, setUser] = useState(null);
+  const [authLoading, setAuthLoading] = useState(true);
+  const [logoutLoading, setLogoutLoading] = useState(false);
+  const [authError, setAuthError] = useState("");
+
   const [apiStatus, setApiStatus] = useState("Checking...");
   const [currentPage, setCurrentPage] = useState("overview");
   const [selectedEvent, setSelectedEvent] = useState(null);
 
-  // Temporary UI preview mode.
-  // Real authentication will be implemented in Commit 4.
-  const [showLoginPreview, setShowLoginPreview] = useState(true);
+  // Check whether an authenticated session already exists.
+  useEffect(() => {
+    let active = true;
 
+    getCurrentUser()
+      .then((currentUser) => {
+        if (active) {
+          setUser(currentUser);
+        }
+      })
+      .catch(() => {
+        if (active) {
+          setUser(null);
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setAuthLoading(false);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, []);
+
+  // Keep the existing backend health check.
   useEffect(() => {
     fetch(`${import.meta.env.VITE_API_URL}/api/health`)
       .then((response) => {
@@ -27,6 +62,32 @@ function App() {
       .then((data) => setApiStatus(data.status))
       .catch(() => setApiStatus("offline"));
   }, []);
+
+  const handleLogin = (authenticatedUser) => {
+    setUser(authenticatedUser);
+    setAuthError("");
+    setCurrentPage("overview");
+    setSelectedEvent(null);
+  };
+
+  const handleLogout = async () => {
+    setLogoutLoading(true);
+    setAuthError("");
+
+    try {
+      await logout();
+
+      setUser(null);
+      setCurrentPage("overview");
+      setSelectedEvent(null);
+    } catch {
+      setAuthError(
+        "Unable to confirm logout. Please try again."
+      );
+    } finally {
+      setLogoutLoading(false);
+    }
+  };
 
   const handleInvestigate = (event) => {
     setSelectedEvent(event);
@@ -43,31 +104,19 @@ function App() {
     }
   };
 
-  // Show the login UI without pretending to authenticate.
-  if (showLoginPreview) {
+  // Wait until FastAPI finishes checking the session.
+  if (authLoading) {
     return (
-      <>
-        <Login />
-
-        <button
-          type="button"
-          onClick={() => setShowLoginPreview(false)}
-          style={{
-            position: "fixed",
-            bottom: "16px",
-            right: "16px",
-            padding: "10px 14px",
-            background: "#303030",
-            color: "#fff",
-            border: "1px solid #555",
-            borderRadius: "6px",
-            cursor: "pointer",
-          }}
-        >
-          Preview Dashboard (Development Only)
-        </button>
-      </>
+      <div className="auth-loading">
+        <h2>ThreatLens</h2>
+        <p>Checking your session...</p>
+      </div>
     );
+  }
+
+  // No authenticated session: show the login page.
+  if (!user) {
+    return <Login onLogin={handleLogin} />;
   }
 
   return (
@@ -75,6 +124,9 @@ function App() {
       <Sidebar
         currentPage={currentPage}
         onNavigate={handleNavigate}
+        user={user}
+        onLogout={handleLogout}
+        logoutLoading={logoutLoading}
       />
 
       <main className="main-content">
@@ -87,6 +139,12 @@ function App() {
 
           <span>Backend: {apiStatus}</span>
         </header>
+
+        {authError && (
+          <p className="auth-error" role="alert">
+            {authError}
+          </p>
+        )}
 
         {currentPage === "overview" ? (
           <section className="dashboard-content">
@@ -136,6 +194,3 @@ function App() {
 }
 
 export default App;
-
-
-

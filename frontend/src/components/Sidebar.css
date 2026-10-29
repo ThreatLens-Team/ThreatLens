@@ -108,3 +108,43 @@
     opacity: 0.45;
     cursor: not-allowed;
   }
+
+/* Authenticated user information */
+
+.sidebar-user-info {
+  min-width: 0;
+  flex: 1;
+}
+
+.sidebar-user-info .user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sign out button */
+
+.sidebar-logout {
+  padding: 0 20px 20px;
+}
+
+.logout-button {
+  width: 100%;
+  padding: 11px 14px;
+  background: #242424;
+  color: #e5e5e5;
+  border: 1px solid #404040;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+
+.logout-button:hover {
+  background: #363636;
+}
+
+.logout-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
