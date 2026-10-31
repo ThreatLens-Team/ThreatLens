@@ -1,30 +1,25 @@
-
 import { useMemo, useState } from "react";
-import { mockEvents } from "../data/mockEvents";
 import "./EventTable.css";
 
-function EventTable({ onInvestigate }) {
+function EventTable({ events = [], onInvestigate, source = "" }) {
   const [search, setSearch] = useState("");
   const [severity, setSeverity] = useState("All");
   const [eventType, setEventType] = useState("All");
 
   const eventTypes = [
     "All",
-    "LOGIN_FAILURE",
-    "LOGIN_SUCCESS",
-    "UNAUTHORIZED_ACCESS",
-    "ACCOUNT_CREATED",
-    "LOGOUT",
+    ...new Set(events.map((event) => event.eventType)),
   ];
 
   const filteredEvents = useMemo(() => {
-    return mockEvents.filter((event) => {
-      const searchText = search.toLowerCase();
+    return events.filter((event) => {
+      const searchText = search.trim().toLowerCase();
 
       const matchesSearch =
-        event.username.toLowerCase().includes(searchText) ||
-        event.eventType.toLowerCase().includes(searchText) ||
-        event.sourceIP.includes(searchText);
+        String(event.username).toLowerCase().includes(searchText) ||
+        String(event.eventType).toLowerCase().includes(searchText) ||
+        String(event.sourceIP).toLowerCase().includes(searchText) ||
+        String(event.id).toLowerCase().includes(searchText);
 
       const matchesSeverity =
         severity === "All" || event.severity === severity;
@@ -38,23 +33,18 @@ function EventTable({ onInvestigate }) {
         matchesEventType
       );
     });
-  }, [search, severity, eventType]);
-
-  const handleInvestigate = (event) => {
-    alert(
-      `Investigation page coming next!\n\n` +
-      `Event ID: ${event.id}\n` +
-      `Event Type: ${event.eventType}\n` +
-      `User: ${event.username}`
-    );
-  };
+  }, [events, search, severity, eventType]);
 
   return (
     <section className="events-panel">
       <div className="events-header">
         <div>
           <h3>Recent Security Events</h3>
-          <p>Demo IAM activity — sample data</p>
+          <p>
+            {source === "demo"
+              ? "Demonstration IAM activity — sample events"
+              : "Security events for the selected client"}
+          </p>
         </div>
 
         <input
@@ -63,7 +53,7 @@ function EventTable({ onInvestigate }) {
           placeholder="Search events..."
           aria-label="Search security events"
           value={search}
-          onChange={(e) => setSearch(e.target.value)}
+          onChange={(event) => setSearch(event.target.value)}
         />
       </div>
 
@@ -75,7 +65,7 @@ function EventTable({ onInvestigate }) {
         <select
           id="severity-filter"
           value={severity}
-          onChange={(e) => setSeverity(e.target.value)}
+          onChange={(event) => setSeverity(event.target.value)}
         >
           <option value="All">All severities</option>
           <option value="High">High</option>
@@ -90,7 +80,7 @@ function EventTable({ onInvestigate }) {
         <select
           id="event-type-filter"
           value={eventType}
-          onChange={(e) => setEventType(e.target.value)}
+          onChange={(event) => setEventType(event.target.value)}
         >
           {eventTypes.map((type) => (
             <option key={type} value={type}>
@@ -155,7 +145,9 @@ function EventTable({ onInvestigate }) {
 
         {filteredEvents.length === 0 && (
           <p className="events-empty">
-            No events match your search or filter.
+            {events.length === 0
+              ? "No events were returned for this client."
+              : "No events match your search or filter."}
           </p>
         )}
       </div>
@@ -164,4 +156,5 @@ function EventTable({ onInvestigate }) {
 }
 
 export default EventTable;
+
 

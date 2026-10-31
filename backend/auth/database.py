@@ -14,6 +14,8 @@ def get_connection():
 
 def initialize_database():
     with get_connection() as connection:
+
+        # Existing authentication tables
         connection.execute("""
             CREATE TABLE IF NOT EXISTS users (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,6 +37,36 @@ def initialize_database():
                 created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (user_id)
                     REFERENCES users(id)
+                    ON DELETE CASCADE
+            )
+        """)
+
+        # New: Client companies monitored by ThreatLens
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS clients (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL UNIQUE,
+                is_active INTEGER NOT NULL DEFAULT 1
+                    CHECK(is_active IN (0, 1)),
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+            )
+        """)
+
+        # New: Assign analysts to specific clients
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS analyst_client_assignments (
+                user_id INTEGER NOT NULL,
+                client_id INTEGER NOT NULL,
+                assigned_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                PRIMARY KEY (user_id, client_id),
+
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id)
+                    ON DELETE CASCADE,
+
+                FOREIGN KEY (client_id)
+                    REFERENCES clients(id)
                     ON DELETE CASCADE
             )
         """)
