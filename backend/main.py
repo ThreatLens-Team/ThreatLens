@@ -66,4 +66,3 @@ async def ai_investigate(request: InvestigationRequest):
             status_code=502,
             detail="Unable to complete AI investigation"
         )
-
