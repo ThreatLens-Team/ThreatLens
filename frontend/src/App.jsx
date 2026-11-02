@@ -384,7 +384,9 @@ function App() {
             </>
           ) : (
             <Investigations
+	      key={`${selectedClientId}:${selectedEvent?.id ?? "none"}`}
               event={selectedEvent}
+              events={events}
               onBack={handleBack}
             />
           )}

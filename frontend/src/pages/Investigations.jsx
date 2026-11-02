@@ -1,8 +1,54 @@
-
-import { mockEvents } from "../data/mockEvents";
+import { useEffect, useRef, useState } from "react";
+import { investigateClientEvent } from "../services/investigations";
 import "./Investigations.css";
 
-function Investigations({ event, onBack }) {
+function Investigations({ event, events = [], onBack }) {
+
+  const [aiResult, setAiResult] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiError, setAiError] = useState("");
+
+  const requestRef = useRef(null);
+
+  useEffect(() => {
+    return () => {
+      requestRef.current?.abort();
+    };
+  }, []);
+
+  const handleGenerateInvestigation = async () => {
+    if (!event?.id || event.clientId == null || aiLoading) {
+      return;
+    }
+
+    const controller = new AbortController();
+    requestRef.current = controller;
+
+    setAiLoading(true);
+    setAiError("");
+    setAiResult("");
+
+    try {
+      const result = await investigateClientEvent(
+        event.clientId,
+        event.id,
+        controller.signal
+      );
+
+      if (!controller.signal.aborted) {
+        setAiResult(result.investigation);
+      }
+    } catch (error) {
+      if (!controller.signal.aborted) {
+        setAiError(error.message);
+      }
+    } finally {
+      if (!controller.signal.aborted) {
+        setAiLoading(false);
+      }
+    }
+  };
+
   if (!event) {
     return (
       <section className="investigation-page">
@@ -18,13 +64,29 @@ function Investigations({ event, onBack }) {
     );
   }
 
-  const relatedEvents = mockEvents
-    .filter(
-      (item) =>
-        item.username === event.username ||
-        item.sourceIP === event.sourceIP
-    )
-    .sort((a, b) => b.timestamp.localeCompare(a.timestamp));
+  const relatedEvents = events
+  .filter((item) => {
+    if (item.clientId !== event.clientId) {
+      return false;
+    }
+
+    if (item.id === event.id) {
+      return false;
+    }
+
+    const sameUsername =
+      event.username !== "Unknown" &&
+      item.username === event.username;
+
+    const sameIP =
+      event.sourceIP !== "Not available" &&
+      item.sourceIP === event.sourceIP;
+
+    return sameUsername || sameIP;
+  })
+  .sort((a, b) =>
+    String(b.timestamp).localeCompare(String(a.timestamp))
+  );
 
   return (
     <section className="investigation-page">
@@ -127,27 +189,56 @@ function Investigations({ event, onBack }) {
         </div>
       </div>
 
+
       <div className="investigation-card ai-panel">
         <h2>AI Security Analysis</h2>
 
-        <span className="investigation-demo">
-          SIMULATED ANALYSIS
-        </span>
-
         <p>
-          AI-powered investigation is not connected yet.
-          This section will eventually display analysis
-          generated using verified security evidence.
+          Generate an AI-assisted investigation of this
+          client's selected IAM security event.
         </p>
 
-        <h3>Future Investigation Capabilities</h3>
+        <button
+          type="button"
+          className="investigation-back"
+          onClick={handleGenerateInvestigation}
+          disabled={aiLoading}
+        >
+          {aiLoading
+            ? "Generating Investigation..."
+            : "Generate AI Investigation"}
+        </button>
 
-        <ul>
-          <li>Explain suspicious authentication patterns.</li>
-          <li>Evaluate account privileges and security context.</li>
-          <li>Identify related IAM activity.</li>
-          <li>Recommend investigation steps for analysts.</li>
-        </ul>
+        {aiLoading && (
+          <p role="status">
+            Analyzing security evidence. Please wait...
+          </p>
+        )}
+
+        {aiError && (
+          <p role="alert">
+            Unable to generate investigation: {aiError}
+          </p>
+        )}
+
+        {aiResult && (
+          <div className="ai-result">
+            <h3>AI Investigation Results</h3>
+            <p>
+              AI-generated assessment based on the
+              available demonstration evidence.
+              Findings require analyst review.
+            </p>
+            <pre style={{
+              whiteSpace: "pre-wrap",
+              overflowWrap: "anywhere",
+              fontFamily: "inherit",
+              lineHeight: 1.7
+            }}>
+              {aiResult}
+            </pre>
+          </div>
+        )}
       </div>
     </section>
   );
