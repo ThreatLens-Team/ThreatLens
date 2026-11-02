@@ -1,4 +1,3 @@
-
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
@@ -8,7 +7,7 @@ from auth.database import initialize_database
 from auth.routes import router as auth_router
 from clients import router as clients_router
 from client_events import router as client_events_router
-
+from client_investigations import router as client_investigations_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -36,6 +35,7 @@ app.include_router(clients_router)
 
 # Authorized client-specific security events.
 app.include_router(client_events_router)
+app.include_router(client_investigations_router)
 
 
 @app.get("/api/health")
