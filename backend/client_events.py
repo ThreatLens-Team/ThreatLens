@@ -1,4 +1,6 @@
-
+import hashlib
+import logging
+from splunk_client import search_threatlens
 from fastapi import APIRouter, Depends, HTTPException
 
 from auth.database import get_connection
@@ -102,16 +104,70 @@ def get_client_events(
 
     client_name = client["name"]
 
-    # Vet Clinic's real Splunk integration will be
-    # connected after client-specific filtering is ready.
     if client_name == "Vet Clinic":
-        raise HTTPException(
-            status_code=503,
-            detail=(
-                "Vet Clinic Splunk events are unavailable "
-                "until client-specific filtering is configured"
-            ),
+
+        # Fixed server-side filter for Vet Clinic events.
+        # Never accept Splunk search filters from the browser.
+        query = (
+            'source="/root/vet-clinic/backend/api/logs/iam-security.log" '
+            'host="ubuntu-COSC4380-04" '
+            'sourcetype="threatlens:iam:json" '
+            '| sort 0 - _time '
+            '| head 100 '
+            '| eval timestamp=strftime(_time,"%Y-%m-%d %H:%M:%S %Z") '
+            '| table _cd timestamp event_type email user_id '
+            'result reason source_ip'
         )
+
+        try:
+            splunk_events = search_threatlens(query)
+        except Exception:
+            logging.getLogger(__name__).exception(
+                "Vet Clinic Splunk event retrieval failed"
+            )
+            raise HTTPException(
+                status_code=503,
+                detail="Vet Clinic security events are temporarily unavailable",
+            )
+
+        events = []
+
+        for event in splunk_events:
+            splunk_id = event.get("_cd")
+
+            if not splunk_id:
+                continue
+
+            # Stable application ID derived from the Splunk event ID.
+            event_id = (
+                "VC-"
+                + hashlib.sha256(
+                    str(splunk_id).encode("utf-8")
+                ).hexdigest()[:24]
+            )
+
+            event_type = event.get("event_type") or "UNKNOWN"
+            reason = event.get("reason") or event.get("result") or "IAM activity"
+
+            events.append({
+               	"id": event_id,
+    		"event_type": event_type,
+   		"username": event.get("email") or event.get("user_id") or "unknown",
+   		"risk_level": "unknown",
+    		"description": f"{event_type}: {reason}",
+    		"timestamp": event.get("timestamp"),
+    		"source_ip": event.get("source_ip") or "Unknown",
+    		"status": event.get("result") or "UNKNOWN",
+	    })
+
+        return {
+            "status": "ok",
+            "client_id": client["id"],
+            "client_name": client_name,
+            "source": "splunk",
+            "count": len(events),
+            "events": events,
+        } 
 
     if client_name not in DEMO_EVENTS:
         raise HTTPException(
