@@ -8,6 +8,7 @@ from auth.routes import router as auth_router
 from clients import router as clients_router
 from client_events import router as client_events_router
 from client_investigations import router as client_investigations_router
+from client_cases import router as client_cases_router
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -37,6 +38,7 @@ app.include_router(clients_router)
 app.include_router(client_events_router)
 app.include_router(client_investigations_router)
 
+app.include_router(client_cases_router)
 
 @app.get("/api/health")
 def health():

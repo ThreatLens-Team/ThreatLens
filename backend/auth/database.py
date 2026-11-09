@@ -70,5 +70,42 @@ def initialize_database():
                     ON DELETE CASCADE
             )
         """)
+	        # Investigation cases opened by ThreatLens analysts.
+        # Each investigation belongs to one user and one client.
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS investigation_cases (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
 
+                user_id INTEGER NOT NULL,
+                client_id INTEGER NOT NULL,
+                event_id TEXT NOT NULL,
+
+                event_snapshot TEXT NOT NULL,
+
+                status TEXT NOT NULL DEFAULT 'investigating'
+                    CHECK(status IN (
+                        'investigating',
+                        'review',
+                        'verified'
+                    )),
+
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                UNIQUE(client_id, event_id),
+
+                FOREIGN KEY (user_id)
+                    REFERENCES users(id)
+                    ON DELETE CASCADE,
+
+                FOREIGN KEY (client_id)
+                    REFERENCES clients(id)
+                    ON DELETE CASCADE
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_investigation_cases_owner
+            ON investigation_cases(user_id, client_id, status)
+        """)
         connection.commit()
