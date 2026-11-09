@@ -1,0 +1,58 @@
+
+export const mockEvents = [
+    {
+      id: "EVT-001",
+      timestamp: "2026-10-25 14:32:18",
+      eventType: "UNAUTHORIZED_ACCESS",
+      username: "noah.wells",
+      sourceIP: "198.51.100.42",
+      severity: "High",
+      status: "Unresolved",
+    },
+    {
+      id: "EVT-002",
+      timestamp: "2026-10-25 14:29:03",
+      eventType: "LOGIN_FAILURE",
+      username: "noah.wells",
+      sourceIP: "198.51.100.42",
+      severity: "High",
+      status: "Investigating",
+    },
+    {
+      id: "EVT-003",
+      timestamp: "2026-10-25 14:21:45",
+      eventType: "LOGIN_SUCCESS",
+      username: "maya.chen",
+      sourceIP: "203.0.113.17",
+      severity: "Low",
+      status: "Verified",
+    },
+    {
+      id: "EVT-004",
+      timestamp: "2026-10-25 13:56:11",
+      eventType: "ACCOUNT_CREATED",
+      username: "svc.deploy",
+      sourceIP: "192.0.2.81",
+      severity: "Medium",
+      status: "Review",
+    },
+    {
+      id: "EVT-005",
+      timestamp: "2026-10-25 13:40:29",
+      eventType: "LOGIN_FAILURE",
+      username: "elena.ortiz",
+      sourceIP: "203.0.113.88",
+      severity: "Medium",
+      status: "Resolved",
+    },
+    {
+      id: "EVT-006",
+      timestamp: "2026-10-25 13:12:08",
+      eventType: "LOGOUT",
+      username: "liam.brooks",
+      sourceIP: "192.0.2.44",
+      severity: "Low",
+      status: "Verified",
+    },
+  ];
+  

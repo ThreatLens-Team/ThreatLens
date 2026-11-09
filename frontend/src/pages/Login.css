@@ -1,0 +1,170 @@
+
+.login-page {
+    min-height: 100vh;
+    background: #101010;
+    color: #f5f5f5;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+  }
+
+  .login-container {
+    width: 100%;
+    max-width: 420px;
+  }
+
+  .login-brand {
+    text-align: center;
+    margin-bottom: 34px;
+  }
+
+  .login-logo {
+    width: 62px;
+    height: 62px;
+    border: 2px solid #dedede;
+    border-radius: 16px;
+    margin: 0 auto 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 23px;
+    font-weight: 700;
+  }
+
+  .login-brand h1 {
+    font-size: 30px;
+    margin: 0 0 8px;
+  }
+
+  .login-brand p,
+  .login-description,
+  .login-notice,
+  .login-footer {
+    color: #888;
+    font-size: 13px;
+  }
+
+  .login-form {
+    padding: 32px;
+    background: #191919;
+    border: 1px solid #303030;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 13px;
+  }
+
+  .login-form h2 {
+    font-size: 21px;
+    margin: 0;
+  }
+
+  .login-description {
+    margin: 0 0 15px;
+    line-height: 1.6;
+  }
+
+  .login-form label {
+    font-size: 13px;
+    font-weight: 500;
+  }
+
+  .login-form input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #404040;
+    background: #111;
+    border-radius: 6px;
+    color: white;
+    font-size: 14px;
+    outline: none;
+  }
+
+  .login-form input:focus {
+    border-color: #929292;
+  }
+
+  .password-field {
+    display: flex;
+    position: relative;
+    align-items: center;
+  }
+
+  .password-field input {
+    padding-right: 60px;
+  }
+
+  .password-field button {
+    position: absolute;
+    right: 8px;
+    background: transparent;
+    border: none;
+    color: #aaa;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 8px;
+  }
+
+  .login-submit {
+    background: #e8e8e8;
+    color: #111;
+    border: none;
+    border-radius: 6px;
+    padding: 13px;
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 700;
+    cursor: pointer;
+  }
+
+  .login-submit:hover {
+    background: white;
+  }
+
+  .login-error {
+    color: #f08080;
+    background: #351c1c;
+    border-radius: 5px;
+    padding: 10px;
+    font-size: 12px;
+  }
+
+  .login-notice {
+    text-align: center;
+    margin: 10px 0 0;
+  }
+
+  .login-footer {
+    margin-top: 25px;
+    text-align: center;
+    line-height: 1.6;
+  }
+
+/* ThreatLens Login Branding */
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.login-brand-image {
+  display: block;
+  width: 260px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-brand p {
+  color: #a8a8a8;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  margin: 0;
+}

@@ -1,0 +1,258 @@
+
+.events-panel {
+    margin-top: 24px;
+    background: #191919;
+    border: 1px solid #2b2b2b;
+    border-radius: 9px;
+    overflow: hidden;
+  }
+  
+  .events-header {
+    padding: 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+  }
+  
+  .events-header h3 {
+    margin: 0 0 7px;
+    font-size: 16px;
+  }
+  
+  .events-header p {
+    margin: 0;
+    color: #888;
+    font-size: 12px;
+  }
+  
+  .events-search,
+  .events-toolbar select {
+    background: #121212;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #eee;
+    padding: 10px 12px;
+  }
+  
+  .events-search {
+    width: 240px;
+    max-width: 100%;
+  }
+  
+  .events-toolbar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 12px 20px;
+    border-top: 1px solid #2b2b2b;
+    border-bottom: 1px solid #2b2b2b;
+    color: #999;
+    font-size: 12px;
+  }
+  
+  .events-toolbar span {
+    margin-left: auto;
+  }
+  
+  .events-table-scroll {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .events-table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    min-width: 800px;
+  }
+  
+  .events-table th {
+    background: #171717;
+    color: #888;
+    padding: 15px;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  
+  .events-table td {
+    padding: 16px 15px;
+    color: #c7c7c7;
+    font-size: 12px;
+    border-top: 1px solid #292929;
+  }
+  
+  .events-table tbody tr:hover {
+    background: #222;
+  }
+  
+  .event-type {
+    font-family: monospace;
+    font-size: 12px;
+  }
+  
+  .severity-badge {
+    display: inline-block;
+    border-radius: 5px;
+    padding: 5px 12px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  
+  .severity-high {
+    color: #f08080;
+    background: #351c1c;
+    border: 1px solid #5b2929;
+  }
+  
+  .severity-medium {
+    color: #e8b661;
+    background: #322718;
+    border: 1px solid #5a431d;
+  }
+  
+  .severity-low {
+    color: #80c99c;
+    background: #183024;
+    border: 1px solid #2b573c;
+  }
+  
+  .events-empty {
+    padding: 24px;
+    text-align: center;
+    color: #888;
+  }
+  
+  @media (max-width: 768px) {
+    .events-header {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .events-search {
+      width: 100%;
+    }
+  }
+
+/* Investigate action button */
+
+.investigate-btn {
+    padding: 8px 14px;
+    background: transparent;
+    border: 1px solid #444;
+    border-radius: 6px;
+    color: #e5e5e5;
+    font-size: 12px;
+    cursor: pointer;
+    transition: background 0.2s, border-color 0.2s;
+    white-space: nowrap;
+  }
+  
+  .investigate-btn:hover {
+    background: #2c2c2c;
+    border-color: #777;
+  }
+  
+  .investigate-btn:focus-visible {
+    outline: 2px solid #8caeff;
+    outline-offset: 2px;
+  }
+  
+  @media (max-width: 768px) {
+    .events-toolbar {
+      flex-wrap: wrap;
+    }
+  
+    .events-toolbar span {
+      width: 100%;
+      margin-left: 0;
+    }
+  }
+  
+.tl-event-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 500;
+  color: #dddddd;
+  white-space: nowrap;
+}
+
+.tl-event-status-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: #888888;
+}
+
+/* New security event */
+.tl-event-status-open .tl-event-status-dot {
+  background: #9b9b9b;
+}
+
+/* Investigation created */
+.tl-event-status-pending .tl-event-status-dot {
+  background: #eabf56;
+}
+
+/* Awaiting administrator review */
+.tl-event-status-review .tl-event-status-dot {
+  background: #e99951;
+}
+
+/* Administrator approved */
+.tl-event-status-verified .tl-event-status-dot {
+  background: #5ec995;
+}
+
+/* Loading or unavailable */
+.tl-event-status-loading---- .tl-event-status-dot,
+.tl-event-status-unavailable .tl-event-status-dot {
+  background: #777777;
+}
+
+/* =========================================
+   ACTION COLUMN
+========================================= */
+
+.events-action-cell {
+  text-align: center;
+  vertical-align: middle;
+}
+
+.events-action-ellipsis {
+  display: inline-block;
+  color: #a5a5a5;
+  font-size: 15px;
+  font-weight: 800;
+  letter-spacing: 2px;
+  line-height: 1;
+  user-select: none;
+}
+
+/* Keep investigation buttons neutral gray */
+.events-action-cell .investigate-btn {
+  background: #292929;
+  color: #f5f5f5;
+  border: 1px solid #494949;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.events-action-cell .investigate-btn:hover {
+  background: #3a3a3a;
+  border-color: #666666;
+}
+
+/* Unclassified risk should not appear Low */
+.severity-unknown {
+  background: #303030;
+  color: #c2c2c2;
+  border: 1px solid #494949;
+}
