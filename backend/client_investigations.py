@@ -8,13 +8,14 @@ from fastapi import (
 from pydantic import BaseModel, Field
 from openai import OpenAIError
 
+from auth.database import get_connection
 from auth.routes import (
     get_current_user,
     check_request_origin,
 )
 from client_events import (
     get_authorized_client,
-    DEMO_EVENTS,
+    get_client_events,
 )
 from ai_agent import investigate_event
 
@@ -40,43 +41,81 @@ async def investigate_client_event(
     response: Response,
     user=Depends(get_current_user),
 ):
-    # Verify request origin.
+    # Protect the authenticated POST request.
     check_request_origin(request)
 
-    # Verify the analyst can access this client.
+    # Verify access to the selected client workspace.
     client = get_authorized_client(client_id, user)
 
-    # Only use existing synthetic demo events for now.
-    # Real Splunk evidence is not connected yet.
-    events = DEMO_EVENTS.get(client["name"])
+    # Find the existing investigation case.
+    # Cases are shared within a client but assigned
+    # to one analyst.
+    with get_connection() as db:
+        case = db.execute(
+            """
+            SELECT id, user_id, status
+            FROM investigation_cases
+            WHERE client_id = ?
+              AND event_id = ?
+            """,
+            (client_id, payload.event_id),
+        ).fetchone()
 
-    if events is None:
+    if case is None:
         raise HTTPException(
-            status_code=503,
-            detail="Client investigation source is not configured",
+            status_code=404,
+            detail="Open an investigation case first",
         )
 
-    # Find the requested event inside the authorized client.
+    # Only the assigned case owner can generate
+    # or change the AI analysis.
+    if case["user_id"] != user["id"]:
+        raise HTTPException(
+            status_code=403,
+            detail="Only the assigned analyst can generate AI analysis",
+        )
+
+    # Cases awaiting approval or already verified
+    # should not be changed through this action.
+    if case["status"] != "investigating":
+        raise HTTPException(
+            status_code=409,
+            detail="This investigation is not in an editable state",
+        )
+
+    # Retrieve events from the authorized client source:
+    # Vet Clinic -> Splunk
+    # Demo companies -> demonstration data
+    data = get_client_events(
+        client_id=client_id,
+        user=user,
+    )
+
+    # Never accept event details from the browser.
     event = next(
-        (e for e in events if e["id"] == payload.event_id),
+        (
+            item for item in data["events"]
+            if item["id"] == payload.event_id
+        ),
         None,
     )
 
     if event is None:
         raise HTTPException(
             status_code=404,
-            detail="Event not found for this client",
+            detail="Event not found in the current client event results",
         )
 
-    # Only send selected non-identifying demo fields.
+    # Send only relevant, limited security evidence.
+    # Do not send account emails, usernames,
+    # passwords, or complete raw Splunk records.
     safe_event = {
-        key: event[key]
-        for key in (
-            "event_type",
-            "risk_level",
-            "description",
-        )
-        if key in event
+        "data_source": data["source"],
+        "event_type": event.get("event_type"),
+        "event_result": event.get("status", "UNKNOWN"),
+        "event_timestamp": event.get("timestamp"),
+        "description": event.get("description"),
+        "risk_level": event.get("risk_level", "unknown"),
     }
 
     try:
@@ -94,6 +133,7 @@ async def investigate_client_event(
         "status": "ok",
         "client_id": client["id"],
         "event_id": event["id"],
-        "source": "demo",
+        "case_id": case["id"],
+        "source": data["source"],
         "investigation": investigation,
     }
