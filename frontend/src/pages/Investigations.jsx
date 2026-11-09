@@ -2,7 +2,14 @@ import { useEffect, useRef, useState } from "react";
 import { investigateClientEvent } from "../services/investigations";
 import "./Investigations.css";
 
-function Investigations({ event, events = [], onBack }) {
+
+function Investigations({
+    event,
+    events = [],
+    onBack,
+    caseRecord,
+  }) {
+    const canEdit = caseRecord?.can_edit === true;
 
   const [aiResult, setAiResult] = useState("");
   const [aiLoading, setAiLoading] = useState(false);
@@ -198,17 +205,27 @@ function Investigations({ event, events = [], onBack }) {
           client's selected IAM security event.
         </p>
 
-        <button
+        {canEdit ? (
+      <button
           type="button"
           className="investigation-back"
           onClick={handleGenerateInvestigation}
           disabled={aiLoading}
-        >
-          {aiLoading
-            ? "Generating Investigation..."
-            : "Generate AI Investigation"}
-        </button>
-
+          >
+           {aiLoading
+             ? "Generating Investigation..."
+              : "Generate AI Investigation"}
+          </button>
+        ) : (
+          <p className="investigation-readonly">
+            <strong>Read-only investigation</strong>
+            <span>
+              You can review this investigation, but only
+              its assigned analyst can generate or modify
+              AI findings while the case is investigating.
+            </span>
+          </p>
+        )}
         {aiLoading && (
           <p role="status">
             Analyzing security evidence. Please wait...

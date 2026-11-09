@@ -126,17 +126,42 @@ function EventTable({ events = [], onInvestigate, source = "" }) {
                     {event.severity}
                   </span>
                 </td>
-
-                <td>{event.status}</td>
-
                 <td>
-                  <button
-                    type="button"
-                    className="investigate-btn"
-                    onClick={() => onInvestigate(event)}
-                  >
-                    Investigate
-                  </button>
+        <span
+          className={`tl-event-status tl-event-status-${String(
+              event.status || "Open"
+          ).toLowerCase().replace(/[^a-z]/g, "-")}`}
+          >
+          <span
+              className="tl-event-status-dot"
+              aria-hidden="true"
+          />
+          {event.status || "Open"}
+        </span>
+    </td>
+                <td className="events-action-cell">
+        {event.severity === "High" ||
+        event.severity === "Medium" ? (
+             <button
+                 type="button"
+                 className="investigate-btn"
+                       onClick={() => onInvestigate(event)}
+             >
+                {["Pending", "Review", "Verified"].includes(
+                        event.status
+                      )
+                        ? "View Case"
+                        : "Investigate"}
+                     </button>
+                   ) : (
+                     <span
+                       className="events-action-ellipsis"
+                       title="Not recommended for investigation. Use New Investigation to select this event manually."
+                       aria-label="No recommended investigation action"
+             >
+               ...
+                  </span>
+        )}
                 </td>
               </tr>
             ))}
