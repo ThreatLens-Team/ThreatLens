@@ -1,4 +1,5 @@
-
+import "./Sidebar.css";
+import threatLensLogo from "../assets/threatlens-logo.png";
 import "./Sidebar.css";
 
 function Sidebar({
@@ -19,9 +20,13 @@ function Sidebar({
   return (
     <aside className="sidebar">
       <div className="sidebar-brand">
-        <div className="sidebar-logo">TL</div>
-        <h2>ThreatLens</h2>
+        <img
+          src={threatLensLogo}
+          alt="ThreatLens"
+          className="sidebar-brand-image"
+        />
       </div>
+
 
       <div className="sidebar-section">
         <p className="sidebar-label">WORKSPACE</p>

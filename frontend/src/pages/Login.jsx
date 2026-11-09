@@ -1,4 +1,4 @@
-
+import threatLensLogo from "../assets/threatlens-logo.png";
 import { useState } from "react";
 import "./Login.css";
 import { login } from "../services/auth";
@@ -31,9 +31,11 @@ function Login({ onLogin }) {
     <div className="login-page">
       <div className="login-container">
         <div className="login-brand">
-          <div className="login-logo">TL</div>
-          <h1>ThreatLens</h1>
-          <p>Security Investigation Platform</p>
+          <img
+            src={threatLensLogo}
+            alt="ThreatLens"
+            className="login-brand-image"
+          />
         </div>
 
         <form
@@ -104,15 +106,8 @@ function Login({ onLogin }) {
           >
             {loading ? "Signing In..." : "Sign In"}
           </button>
-
-          <p className="login-notice">
-            Authorized ThreatLens personnel only.
-          </p>
         </form>
 
-        <p className="login-footer">
-          ThreatLens — AI-Assisted IAM Security Investigations
-        </p>
       </div>
     </div>
   );

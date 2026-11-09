@@ -8,17 +8,17 @@
     justify-content: center;
     padding: 24px;
   }
-  
+
   .login-container {
     width: 100%;
     max-width: 420px;
   }
-  
+
   .login-brand {
     text-align: center;
     margin-bottom: 34px;
   }
-  
+
   .login-logo {
     width: 62px;
     height: 62px;
@@ -31,12 +31,12 @@
     font-size: 23px;
     font-weight: 700;
   }
-  
+
   .login-brand h1 {
     font-size: 30px;
     margin: 0 0 8px;
   }
-  
+
   .login-brand p,
   .login-description,
   .login-notice,
@@ -44,7 +44,7 @@
     color: #888;
     font-size: 13px;
   }
-  
+
   .login-form {
     padding: 32px;
     background: #191919;
@@ -54,22 +54,22 @@
     flex-direction: column;
     gap: 13px;
   }
-  
+
   .login-form h2 {
     font-size: 21px;
     margin: 0;
   }
-  
+
   .login-description {
     margin: 0 0 15px;
     line-height: 1.6;
   }
-  
+
   .login-form label {
     font-size: 13px;
     font-weight: 500;
   }
-  
+
   .login-form input {
     width: 100%;
     padding: 12px;
@@ -80,21 +80,21 @@
     font-size: 14px;
     outline: none;
   }
-  
+
   .login-form input:focus {
     border-color: #929292;
   }
-  
+
   .password-field {
     display: flex;
     position: relative;
     align-items: center;
   }
-  
+
   .password-field input {
     padding-right: 60px;
   }
-  
+
   .password-field button {
     position: absolute;
     right: 8px;
@@ -105,7 +105,7 @@
     font-size: 12px;
     padding: 8px;
   }
-  
+
   .login-submit {
     background: #e8e8e8;
     color: #111;
@@ -117,11 +117,11 @@
     font-weight: 700;
     cursor: pointer;
   }
-  
+
   .login-submit:hover {
     background: white;
   }
-  
+
   .login-error {
     color: #f08080;
     background: #351c1c;
@@ -129,15 +129,42 @@
     padding: 10px;
     font-size: 12px;
   }
-  
+
   .login-notice {
     text-align: center;
     margin: 10px 0 0;
   }
-  
+
   .login-footer {
     margin-top: 25px;
     text-align: center;
     line-height: 1.6;
   }
-  
+
+/* ThreatLens Login Branding */
+
+.login-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 10px;
+  margin-bottom: 28px;
+}
+
+.login-brand-image {
+  display: block;
+  width: 260px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
+
+.login-brand p {
+  color: #a8a8a8;
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: 0.4px;
+  margin: 0;
+}

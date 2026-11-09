@@ -148,3 +148,20 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+/* ThreatLens Chrome Logo */
+
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 10px;
+}
+
+.sidebar-brand-image {
+  display: block;
+  width: 110px;
+  max-width: 100%;
+  height: auto;
+  object-fit: contain;
+}
