@@ -1,261 +1,561 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { investigateClientEvent } from "../services/investigations";
 import "./Investigations.css";
 
+function displayValue(value) {
+  return value == null || value === "" ? "Not available" : String(value);
+}
 
-function Investigations({
-    event,
-    events = [],
-    onBack,
-    caseRecord,
-  }) {
-    const canEdit = caseRecord?.can_edit === true;
+function parseAiInvestigation(text) {
+  const sections = {
+    assessment: [],
+    findings: [],
+    steps: [],
+    limitations: [],
+  };
 
-  const [aiResult, setAiResult] = useState("");
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiError, setAiError] = useState("");
+  if (typeof text !== "string" || !text.trim()) {
+    return sections;
+  }
 
-  const requestRef = useRef(null);
+  let currentSection = "assessment";
+
+  for (const rawLine of text.split(/\r?\n/)) {
+    const line = rawLine.trim();
+    if (!line) continue;
+
+    const plain = line
+      .replace(/^#{1,6}\s*/, "")
+      .replace(/\*\*/g, "")
+      .trim();
+
+    const headingMatch = plain.match(
+      /^(?:\d+[.)]\s*)?(assessment|security assessment|investigation assessment|summary|investigation summary|overview|analysis|key findings|findings|observed facts|supporting evidence|evidence|potential threats?|recommended next steps|recommended investigation steps|recommended actions|recommendations|next steps|suggested actions|action items|limitations|caveats)(?:\s*:\s*(.*))?$/i
+    );
+
+    if (headingMatch) {
+      const heading = headingMatch[1].toLowerCase();
+
+      if (
+        heading.includes("finding") ||
+        heading.includes("fact") ||
+        heading.includes("evidence") ||
+        heading.includes("threat")
+      ) {
+        currentSection = "findings";
+      } else if (
+        heading.includes("recommend") ||
+        heading.includes("step") ||
+        heading.includes("action")
+      ) {
+        currentSection = "steps";
+      } else if (
+        heading.includes("limitation") ||
+        heading.includes("caveat")
+      ) {
+        currentSection = "limitations";
+      } else {
+        currentSection = "assessment";
+      }
+
+      if (headingMatch[2]?.trim()) {
+        sections[currentSection].push(headingMatch[2].trim());
+      }
+      continue;
+    }
+
+    const cleaned = plain
+      .replace(/^[-*•]\s*/, "")
+      .replace(/^\d+[.)]\s*/, "")
+      .trim();
+
+    if (cleaned) {
+      sections[currentSection].push(cleaned);
+    }
+  }
+
+  return sections;
+}
+
+function Investigations({ event, events = [], onBack, caseRecord }) {
+  const canEdit = caseRecord?.can_edit === true;
+  const caseKey =
+    event?.id && event.clientId != null
+      ? `${event.clientId}:${event.id}`
+      : null;
+
+  // Keep results local to their specific case so a late response cannot
+  // accidentally appear in a different investigation.
+  const [aiView, setAiView] = useState({
+    key: null,
+    result: null,
+    loading: false,
+    error: "",
+  });
+  const [viewedEvent, setViewedEvent] = useState(null);
+  const autoRequestedRef = useRef(new Set());
+  const inFlightRef = useRef(new Set());
+  const activeCaseRef = useRef(caseKey);
+  const mountedRef = useRef(false);
+
+  activeCaseRef.current = caseKey;
 
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
-      requestRef.current?.abort();
+      mountedRef.current = false;
     };
   }, []);
 
-  const handleGenerateInvestigation = async () => {
-    if (!event?.id || event.clientId == null || aiLoading) {
+  useEffect(() => {
+    setAiView({
+      key: caseKey,
+      result: null,
+      loading: false,
+      error: "",
+    });
+    setViewedEvent(null);
+  }, [caseKey]);
+
+  const aiResult =
+    aiView.key === caseKey && aiView.result !== null
+      ? aiView.result
+      : caseRecord?.ai_result || "";
+  const aiLoading = aiView.key === caseKey && aiView.loading;
+  const aiError = aiView.key === caseKey ? aiView.error : "";
+  const serverGenerating = caseRecord?.ai_state === "generating";
+
+  // Correlate by known username and client, NOT merely by event type or IP.
+  const relatedEvents = useMemo(() => {
+    if (!event) return [];
+
+    const selectedUsername = String(event.username || "")
+      .trim()
+      .toLowerCase();
+    const hasKnownUsername =
+      !!selectedUsername &&
+      !["unknown", "not available", "n/a"].includes(selectedUsername);
+
+    const unique = new Map();
+
+    for (const item of [event, ...events]) {
+      if (!item?.id) continue;
+
+      const sameClient =
+        String(item.clientId) === String(event.clientId);
+      const isSelected = String(item.id) === String(event.id);
+      const sameUsername =
+        hasKnownUsername &&
+        String(item.username || "").trim().toLowerCase() ===
+          selectedUsername;
+
+      if (sameClient && (isSelected || sameUsername)) {
+        if (!unique.has(item.id)) {
+          unique.set(item.id, item);
+        }
+      }
+    }
+
+    return [...unique.values()].sort((a, b) => {
+      const aTime = Date.parse(a.timestamp);
+      const bTime = Date.parse(b.timestamp);
+
+      if (Number.isFinite(aTime) && Number.isFinite(bTime)) {
+        return bTime - aTime;
+      }
+
+      return String(b.timestamp || "").localeCompare(
+        String(a.timestamp || "")
+      );
+    });
+  }, [event, events]);
+
+  const parsedAi = useMemo(() => parseAiInvestigation(aiResult), [aiResult]);
+
+  const handleGenerateInvestigation = useCallback(
+    async (regenerate = false) => {
+      if (
+        !canEdit ||
+        !event?.id ||
+        event.clientId == null ||
+        !caseKey ||
+        inFlightRef.current.has(caseKey)
+      ) {
+        return;
+      }
+
+      const requestedKey = caseKey;
+      inFlightRef.current.add(requestedKey);
+
+      setAiView((previous) => ({
+        key: requestedKey,
+        result:
+          previous.key === requestedKey ? previous.result : null,
+        loading: true,
+        error: "",
+      }));
+
+      try {
+        const response = await investigateClientEvent(
+          event.clientId,
+          event.id,
+          undefined,
+          regenerate
+        );
+
+        if (mountedRef.current && activeCaseRef.current === requestedKey) {
+          setAiView({
+            key: requestedKey,
+            result: response.investigation || "",
+            loading: false,
+            error: "",
+          });
+        }
+      } catch (error) {
+        if (mountedRef.current && activeCaseRef.current === requestedKey) {
+          setAiView((previous) => ({
+            key: requestedKey,
+            result:
+              previous.key === requestedKey ? previous.result : null,
+            loading: false,
+            error:
+              error.status === 409
+                ? "Analysis is already running, or this investigation cannot be modified."
+                : error.message || "Unable to generate AI analysis.",
+          }));
+        }
+      } finally {
+        inFlightRef.current.delete(requestedKey);
+      }
+    },
+    [canEdit, caseKey, event?.clientId, event?.id]
+  );
+
+  // Make one automatic request when the owner opens a case without saved AI.
+  // The backend returns a saved response, if available, without another AI call.
+  useEffect(() => {
+    if (
+      !caseKey ||
+      !caseRecord ||
+      !canEdit ||
+      caseRecord.ai_result ||
+      caseRecord.ai_state === "generating" ||
+      autoRequestedRef.current.has(caseKey)
+    ) {
       return;
     }
 
-    const controller = new AbortController();
-    requestRef.current = controller;
-
-    setAiLoading(true);
-    setAiError("");
-    setAiResult("");
-
-    try {
-      const result = await investigateClientEvent(
-        event.clientId,
-        event.id,
-        controller.signal
-      );
-
-      if (!controller.signal.aborted) {
-        setAiResult(result.investigation);
-      }
-    } catch (error) {
-      if (!controller.signal.aborted) {
-        setAiError(error.message);
-      }
-    } finally {
-      if (!controller.signal.aborted) {
-        setAiLoading(false);
-      }
-    }
-  };
+    autoRequestedRef.current.add(caseKey);
+    void handleGenerateInvestigation(false);
+  }, [caseKey, caseRecord, canEdit, handleGenerateInvestigation]);
 
   if (!event) {
     return (
       <section className="investigation-page">
-        <h1>Security Investigations</h1>
-        <p>Select an IAM event from the Overview dashboard.</p>
         <button
+          type="button"
           className="investigation-back"
           onClick={onBack}
         >
-          Back to Overview
+          ← Back to Investigations
         </button>
+        <h1 className="investigation-title">Security Investigation</h1>
+        <p>Select an investigation to view its security evidence.</p>
       </section>
     );
   }
 
-  const relatedEvents = events
-  .filter((item) => {
-    if (item.clientId !== event.clientId) {
-      return false;
-    }
+  // Detail view uses only fields currently supplied by ThreatLens.
+  // A future authorized backend endpoint can add more original Splunk data.
+  if (viewedEvent) {
+    const detailFields = [
+      ["Event ID", viewedEvent.id],
+      ["Event Type", viewedEvent.eventType],
+      ["Username", viewedEvent.username],
+      ["Source IP", viewedEvent.sourceIP],
+      ["Timestamp", viewedEvent.timestamp],
+      ["Severity", viewedEvent.severity],
+      ["Event Result", viewedEvent.status],
+      ["Description", viewedEvent.description],
+    ];
 
-    if (item.id === event.id) {
-      return false;
-    }
+    return (
+      <section className="investigation-page">
+        <button
+          type="button"
+          className="investigation-back"
+          onClick={() => setViewedEvent(null)}
+        >
+          ← Back to Investigation
+        </button>
+        <h1 className="investigation-title">IAM Event Details</h1>
 
-    const sameUsername =
-      event.username !== "Unknown" &&
-      item.username === event.username;
+        <div className="investigation-card investigation-event-view">
+          <h2>Security Event Evidence</h2>
+          {detailFields.map(([label, value]) => (
+            <div className="investigation-detail-row" key={label}>
+              <span>{label}</span>
+              <strong>{displayValue(value)}</strong>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
-    const sameIP =
-      event.sourceIP !== "Not available" &&
-      item.sourceIP === event.sourceIP;
+  const severity = String(event.severity || "Unknown");
+  const lowerSeverity = severity.toLowerCase();
+  const severityClass = ["low", "medium", "high"].includes(lowerSeverity)
+    ? lowerSeverity
+    : "unknown";
 
-    return sameUsername || sameIP;
-  })
-  .sort((a, b) =>
-    String(b.timestamp).localeCompare(String(a.timestamp))
-  );
+  const caseStatus = String(caseRecord?.status || "investigating");
+  const caseStatusLabel =
+    caseStatus === "review"
+      ? "Review"
+      : caseStatus === "verified"
+        ? "Verified"
+        : "Investigating";
 
   return (
     <section className="investigation-page">
       <button
+        type="button"
         className="investigation-back"
         onClick={onBack}
       >
-        ← Back to Overview
+        ← Back to Investigations
       </button>
 
-      <div className="investigation-heading">
-        <div>
-          <h1>Security Investigation</h1>
-          <p>Review IAM security evidence and account activity.</p>
-        </div>
+      <h1 className="investigation-title">Security Investigation</h1>
 
-        <span className="investigation-demo">
-          DEMO DATA
-        </span>
-      </div>
+      <div className="investigation-main-grid">
+        <div className="investigation-left-column">
+          <div className="investigation-card">
+            <h2>Selected Event</h2>
 
-      <div className="investigation-grid">
-        <div className="investigation-card">
-          <h2>Event Details</h2>
-
-          <div className="detail-row">
-            <span>Event ID</span>
-            <strong>{event.id}</strong>
-          </div>
-
-          <div className="detail-row">
-            <span>Event Type</span>
-            <strong>{event.eventType}</strong>
-          </div>
-
-          <div className="detail-row">
-            <span>Username</span>
-            <strong>{event.username}</strong>
-          </div>
-
-          <div className="detail-row">
-            <span>Source IP</span>
-            <strong>{event.sourceIP}</strong>
-          </div>
-
-          <div className="detail-row">
-            <span>Timestamp</span>
-            <strong>{event.timestamp}</strong>
-          </div>
-
-          <div className="detail-row">
-            <span>Status</span>
-            <strong>{event.status}</strong>
-          </div>
-        </div>
-
-        <div className="investigation-card">
-          <h2>Risk Assessment</h2>
-
-          <div
-            className={`risk-level risk-${event.severity.toLowerCase()}`}
-          >
-            {event.severity} Risk
-          </div>
-
-          <p>
-            This severity is sample data assigned to the
-            selected IAM event.
-          </p>
-
-          <p>
-            Future ThreatLens risk assessments will consider
-            account privileges, event patterns, and
-            additional security evidence.
-          </p>
-        </div>
-      </div>
-
-      <div className="investigation-card">
-        <h2>Related IAM Activity</h2>
-        <p>
-          Events associated with the selected username
-          or source IP address.
-        </p>
-
-        <div className="event-timeline">
-          {relatedEvents.map((item) => (
-            <div className="timeline-item" key={item.id}>
-              <div className="timeline-dot" />
-
-              <div>
-                <strong>{item.eventType}</strong>
-                <p>{item.timestamp}</p>
-                <span>
-                  {item.username} — {item.sourceIP}
+            <div className="investigation-detail-row">
+              <span>Event ID</span>
+              <strong>{displayValue(event.id)}</strong>
+            </div>
+            <div className="investigation-detail-row">
+              <span>Event Type</span>
+              <strong>{displayValue(event.eventType)}</strong>
+            </div>
+            <div className="investigation-detail-row">
+              <span>Username</span>
+              <strong>{displayValue(event.username)}</strong>
+            </div>
+            <div className="investigation-detail-row">
+              <span>Source IP</span>
+              <strong>{displayValue(event.sourceIP)}</strong>
+            </div>
+            <div className="investigation-detail-row">
+              <span>Timestamp</span>
+              <strong>{displayValue(event.timestamp)}</strong>
+            </div>
+            <div className="investigation-detail-row">
+              <span>Severity</span>
+              <strong>
+                <span
+                  className={`investigation-severity investigation-severity-${severityClass}`}
+                >
+                  {severity}
                 </span>
+              </strong>
+            </div>
+            <div className="investigation-detail-row">
+              <span>Status</span>
+              <strong
+                className={`investigation-status investigation-status-${caseStatus}`}
+              >
+                <span className="investigation-status-dot" />
+                {caseStatusLabel}
+              </strong>
+            </div>
+          </div>
+
+          <div className="investigation-card">
+	     <h2>Related User Activity</h2>
+            <div className="investigation-timeline">
+              {relatedEvents.length === 0 ? (
+                <p className="investigation-muted">
+                  No user activity is currently available.
+                </p>
+              ) : (
+                relatedEvents.map((item) => {
+                  const type = String(item.eventType || "");
+                  const dotClass =
+                    type === "LOGIN_SUCCESS"
+                      ? "success"
+                      : type === "LOGIN_FAILURE"
+                        ? "failure"
+                        : type === "UNAUTHORIZED_ACCESS"
+                          ? "unauthorized"
+                          : "neutral";
+
+                  return (
+                    <button
+                      type="button"
+                      className="investigation-timeline-item"
+                      key={item.id}
+                      onClick={() => setViewedEvent(item)}
+                      aria-label={`View details for event ${item.id}`}
+                    >
+                      <span
+                        className={`investigation-timeline-dot investigation-timeline-dot-${dotClass}`}
+                        aria-hidden="true"
+                      />
+                      <span className="investigation-timeline-time">
+                        {displayValue(item.timestamp)}
+                      </span>
+                      <span className="investigation-timeline-content">
+                        <strong>{displayValue(item.eventType)}</strong>
+                        <small>
+                          {item.description || displayValue(item.sourceIP)}
+                        </small>
+                      </span>
+                      <span
+                        className="investigation-timeline-arrow"
+                        aria-hidden="true"
+                      >
+                        ›
+                      </span>
+                    </button>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        </div>
+
+        <div className="investigation-card investigation-ai-card">
+          <div className="investigation-ai-header">
+            <div className="investigation-ai-heading">
+              <span className="investigation-ai-icon" aria-hidden="true">
+                ✧
+              </span>
+              <div>
+                <h2>AI Investigation</h2>
+                <p className="investigation-muted">
+                  AI assessment based on available IAM security evidence.
+                </p>
               </div>
             </div>
-          ))}
+
+            {canEdit && (
+              <button
+                type="button"
+                className="investigation-ai-button"
+                onClick={() => handleGenerateInvestigation(true)}
+                disabled={aiLoading || (serverGenerating && !aiLoading)}
+              >
+                {aiLoading || (serverGenerating && !aiResult)
+                  ? "Analyzing..."
+                  : "↻ Run analysis again"}
+              </button>
+            )}
+          </div>
+
+          {aiLoading && (
+            <p className="investigation-ai-message" role="status">
+              Analyzing security evidence and saving the assessment...
+            </p>
+          )}
+
+          {aiError && (
+            <p className="investigation-ai-error" role="alert">
+              {aiError}
+            </p>
+          )}
+
+          {!aiResult && !aiLoading && (
+            <p className="investigation-ai-message" role="status">
+              {serverGenerating
+                ? "AI analysis is in progress. The saved results will appear when the investigation list refreshes."
+                : canEdit
+                  ? aiError
+                    ? "The assessment could not be completed. Use Run analysis again to retry."
+                    : "Preparing the AI investigation..."
+                  : "No saved AI assessment is available for this investigation."}
+            </p>
+          )}
+
+          {aiResult && (
+            <div className="investigation-ai-results">
+              <div className="investigation-ai-section">
+                <h3>ASSESSMENT</h3>
+                {parsedAi.assessment.length > 0 ? (
+                  parsedAi.assessment.map((line, index) => (
+                    <p key={index}>{line}</p>
+                  ))
+                ) : (
+                  <p className="investigation-muted">
+                    No separate assessment was provided.
+                  </p>
+                )}
+              </div>
+
+              <div className="investigation-ai-section">
+                <h3>KEY FINDINGS</h3>
+                {parsedAi.findings.length > 0 ? (
+                  <ul>
+                    {parsedAi.findings.map((line, index) => (
+                      <li key={index}>{line}</li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="investigation-muted">
+                    No separate findings were provided.
+                  </p>
+                )}
+              </div>
+
+              <div className="investigation-ai-section">
+                <h3>RECOMMENDED NEXT STEPS</h3>
+                {parsedAi.steps.length > 0 ? (
+                  <ol>
+                    {parsedAi.steps.map((line, index) => (
+                      <li key={index}>{line}</li>
+                    ))}
+                  </ol>
+                ) : (
+                  <p className="investigation-muted">
+                    No separate next steps were provided.
+                  </p>
+                )}
+              </div>
+
+              {parsedAi.limitations.length > 0 && (
+                <div className="investigation-ai-section">
+                  <h3>LIMITATIONS</h3>
+                  {parsedAi.limitations.map((line, index) => (
+                    <p key={index}>{line}</p>
+                  ))}
+                </div>
+              )}
+
+              <p className="investigation-ai-disclaimer">
+                AI-generated findings require analyst verification.
+              </p>
+            </div>
+          )}
         </div>
       </div>
 
-
-      <div className="investigation-card ai-panel">
-        <h2>AI Security Analysis</h2>
-
-        <p>
-          Generate an AI-assisted investigation of this
-          client's selected IAM security event.
-        </p>
-
-        {canEdit ? (
-      <button
-          type="button"
-          className="investigation-back"
-          onClick={handleGenerateInvestigation}
-          disabled={aiLoading}
-          >
-           {aiLoading
-             ? "Generating Investigation..."
-              : "Generate AI Investigation"}
-          </button>
-        ) : (
-          <p className="investigation-readonly">
-            <strong>Read-only investigation</strong>
-            <span>
-              You can review this investigation, but only
-              its assigned analyst can generate or modify
-              AI findings while the case is investigating.
-            </span>
-          </p>
-        )}
-        {aiLoading && (
-          <p role="status">
-            Analyzing security evidence. Please wait...
-          </p>
-        )}
-
-        {aiError && (
-          <p role="alert">
-            Unable to generate investigation: {aiError}
-          </p>
-        )}
-
-        {aiResult && (
-          <div className="ai-result">
-            <h3>AI Investigation Results</h3>
-            <p>
-              AI-generated assessment based on the
-              available demonstration evidence.
-              Findings require analyst review.
-            </p>
-            <pre style={{
-              whiteSpace: "pre-wrap",
-              overflowWrap: "anywhere",
-              fontFamily: "inherit",
-              lineHeight: 1.7
-            }}>
-              {aiResult}
-            </pre>
-          </div>
-        )}
+      <div className="investigation-card investigation-report-bar">
+        <span className="investigation-report-icon" aria-hidden="true">
+          ✎
+        </span>
+        <textarea
+          aria-label="Investigation notes"
+          placeholder="Add investigation notes, findings, or next steps..."
+          rows={3}
+          disabled
+        />
+        <button type="button" disabled>
+          Submit Report
+        </button>
       </div>
     </section>
   );

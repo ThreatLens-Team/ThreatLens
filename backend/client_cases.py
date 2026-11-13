@@ -1,5 +1,4 @@
 import json
-
 from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from pydantic import BaseModel, Field
 
@@ -65,6 +64,9 @@ def list_client_cases(
                 c.event_id,
                 c.event_snapshot,
                 c.status,
+		c.ai_result,
+		c.ai_state,
+		c.ai_updated_at,
                 c.created_at,
                 c.updated_at,
                 u.email AS owner_email
@@ -183,6 +185,9 @@ def open_client_case(
                 c.event_id,
                 c.event_snapshot,
                 c.status,
+		c.ai_result,
+		c.ai_state,
+		c.ai_updated_at,
                 c.created_at,
                 c.updated_at,
                 u.email AS owner_email

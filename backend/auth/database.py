@@ -108,4 +108,34 @@ def initialize_database():
             CREATE INDEX IF NOT EXISTS idx_investigation_cases_owner
             ON investigation_cases(user_id, client_id, status)
         """)
+       
+        # Add persistent AI investigation storage.
+        # Existing investigation cases remain unchanged.
+
+        ai_columns = {
+            "ai_result": "TEXT",
+            "ai_state": (
+                "TEXT NOT NULL DEFAULT 'idle' "
+                "CHECK(ai_state IN ("
+                "'idle', 'generating', 'complete', 'failed'))"
+            ),
+            "ai_generation_token": "TEXT",
+            "ai_started_at": "INTEGER",
+            "ai_updated_at": "TEXT",
+        }
+
+        existing_columns = {
+            row["name"]
+            for row in connection.execute(
+                "PRAGMA table_info(investigation_cases)"
+            ).fetchall()
+        }
+
+        for column_name, column_definition in ai_columns.items():
+            if column_name not in existing_columns:
+                connection.execute(
+                    f"ALTER TABLE investigation_cases "
+                    f"ADD COLUMN {column_name} {column_definition}"
+                )
+
         connection.commit()

@@ -386,9 +386,6 @@ function App() {
               ? "Security Overview"
               : "Security Investigations"}
           </h2>
-          <span style={{ fontSize: 12, color: "#aaa" }}>
-            Backend: {apiStatus}
-          </span>
         </header>
 
         <section className="dashboard-content" style={{ padding: 24 }}>
@@ -414,10 +411,7 @@ function App() {
             }}
           >
             <div>
-              <strong style={{ color: "#f3f3f3" }}>Client Workspace</strong>
-              <p style={{ margin: "4px 0 0", color: "#aaa", fontSize: 12 }}>
-                Choose a company you are authorized to investigate.
-              </p>
+              <strong style={{ color: "#f3f3f3" }}>Client </strong>
             </div>
             <select
               value={selectedClientId}

@@ -144,10 +144,9 @@ export default function InvestigationList({
             <option value="">Select an event...</option>
 
             {events.map((event) => (
-              <option key={event.id} value={event.id}>
-                {event.eventType} — {event.username} —
-                {" "}{event.severity} Risk
-              </option>
+	      <option key={event.id} value={event.id}>
+                {event.id} — {event.event_type} — {event.username || "Unknown user"} — {event.severity || "Unknown"} Risk
+              </option>	
             ))}
           </select>
 

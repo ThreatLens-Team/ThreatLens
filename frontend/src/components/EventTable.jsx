@@ -97,6 +97,7 @@ function EventTable({ events = [], onInvestigate, source = "" }) {
           <thead>
             <tr>
               <th>Timestamp</th>
+	      <th>Event ID</th>
               <th>Event Type</th>
               <th>Username</th>
               <th>Source IP</th>
@@ -110,7 +111,9 @@ function EventTable({ events = [], onInvestigate, source = "" }) {
             {filteredEvents.map((event) => (
               <tr key={event.id}>
                 <td>{event.timestamp}</td>
-
+		<td className="event-id-cell">
+  		  {event.id || "N/A"}
+		</td>
                 <td className="event-type">
                   {event.eventType}
                 </td>

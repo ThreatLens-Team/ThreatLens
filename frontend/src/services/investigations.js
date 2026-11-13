@@ -1,10 +1,10 @@
-
 const API_URL = import.meta.env.VITE_API_URL;
 
 export async function investigateClientEvent(
   clientId,
   eventId,
-  signal
+  signal,
+  regenerate = false
 ) {
   const response = await fetch(
     `${API_URL}/api/clients/${encodeURIComponent(clientId)}/investigations`,
@@ -16,6 +16,7 @@ export async function investigateClientEvent(
       },
       body: JSON.stringify({
         event_id: eventId,
+        regenerate,
       }),
       signal,
     }
