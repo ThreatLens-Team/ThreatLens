@@ -11,6 +11,10 @@ import { getCurrentUser, logout } from "./services/auth";
 import { getClients, getClientEvents } from "./services/clients";
 import { getClientCases, openClientCase } from "./services/cases";
 
+import ClientManagement from "./pages/ClientManagement";
+
+import AdminDashboard from "./pages/AdminDashboard";
+
 import "./App.css";
 
 // Keep the event shape expected by EventTable and Investigations.
@@ -312,11 +316,17 @@ function App() {
   };
 
   const handleNavigate = (page) => {
-    if (page === "overview" || page === "investigations") {
-      setSelectedEvent(null);
-      setSelectedCase(null);
-      setCurrentPage(page);
+    const allowedPages = ["overview", "investigations"];
+  
+    if (user?.role === "admin") {
+      allowedPages.push("admin", "client-management");
     }
+  
+    if (!allowedPages.includes(page)) return;
+  
+    setSelectedEvent(null);
+    setSelectedCase(null);
+    setCurrentPage(page);
   };
 
   const selectedClient = clients.find(
@@ -382,9 +392,13 @@ function App() {
           }}
         >
           <h2 style={{ margin: 0, fontSize: 20, fontWeight: 700 }}>
-            {currentPage === "overview"
-              ? "Security Overview"
-              : "Security Investigations"}
+          {currentPage === "overview"
+            ? "Security Overview"
+            : currentPage === "admin"
+            ? "Administration"
+            : currentPage === "client-management"
+            ? "Client Management"
+            : "Security Investigations"}
           </h2>
         </header>
 
@@ -394,7 +408,8 @@ function App() {
               {authError}
             </p>
           )}
-
+          
+          {currentPage !== "admin" && currentPage !== "client-management" && (
           <div
             className="client-workspace"
             style={{
@@ -435,26 +450,39 @@ function App() {
               ))}
             </select>
           </div>
-
-          {clientsLoading && (
-            <p className="client-message" role="status">
-              Loading client workspaces...
-            </p>
-          )}
-          {clientsError && (
-            <p className="client-message" role="alert">
-              Unable to load clients: {clientsError}
-            </p>
-          )}
-          {!clientsLoading && !clientsError && clients.length === 0 && (
-            <p className="client-message">
-              No client workspaces are assigned to your account.
-            </p>
           )}
 
-          {currentPage === "overview" ? (
+          {currentPage !== "admin" &&
+            currentPage !== "client-management" &&
+            clientsLoading && (
+              <p className="client-message" role="status">
+                Loading client workspaces...
+              </p>
+            )}
+
+          {currentPage !== "admin" &&
+            currentPage !== "client-management" &&
+            clientsError && (
+              <p className="client-message" role="alert">
+                Unable to load clients: {clientsError}
+              </p>
+            )}
+          {!clientsLoading && !clientsError && clients.length === 0 &&
+            currentPage !== "admin" &&
+            currentPage !== "client-management" && (
+              <p className="client-message">
+                No client workspaces are assigned to your account.
+              </p>
+            )}
+
+          {currentPage === "admin" && user.role === "admin" ? (
+            <AdminDashboard />
+          ) : currentPage === "client-management" &&
+            user.role === "admin" ? (
+            <ClientManagement />
+          ) : currentPage === "overview" ? (
             <>
-	      <h2 className="tl-overview-section-title">
+              <h2 className="tl-overview-section-title">
                 IAM Activity Overview
               </h2>
               <p>

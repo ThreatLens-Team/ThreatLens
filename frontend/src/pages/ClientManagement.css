@@ -1,0 +1,257 @@
+
+/* =========================================
+   ThreatLens - Client Management
+   ========================================= */
+
+   .client-management {
+    width: 100%;
+    color: #f3f3f3;
+  }
+  
+  /* Page heading */
+  
+  .client-management h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 10px;
+  }
+  
+  .client-management > p {
+    color: #999;
+    font-size: 14px;
+    margin: 0 0 28px;
+  }
+  
+  /* Section cards */
+  
+  .client-management-section {
+    background: #1a1a1a;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .client-management-section h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0 0 20px;
+  }
+  
+  /* Add client form */
+  
+  .client-management form {
+    display: flex;
+    align-items: flex-end;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+  
+  .client-management-field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+    min-width: 200px;
+  }
+  
+  .client-management label {
+    color: #bbb;
+    font-size: 13px;
+    font-weight: 500;
+  }
+  
+  .client-management input {
+    background: #242424;
+    border: 1px solid #414141;
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: #f5f5f5;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  
+  .client-management input:focus {
+    outline: none;
+    border-color: #4d9cff;
+    box-shadow: 0 0 0 2px rgba(77, 156, 255, 0.15);
+  }
+  
+  /* Add Client button */
+  
+  .client-management button {
+    background: #f0f0f0;
+    color: #171717;
+    border: 1px solid #f0f0f0;
+    border-radius: 6px;
+    padding: 12px 20px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s ease;
+  }
+  
+  .client-management button:hover:not(:disabled) {
+    background: #d6d6d6;
+  }
+  
+  .client-management button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  /* Tables */
+  
+  .client-management-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .client-management table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .client-management th {
+    background: #202020;
+    color: #999;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 15px 18px;
+    border-bottom: 1px solid #353535;
+    white-space: nowrap;
+  }
+  
+  .client-management td {
+    color: #ddd;
+    padding: 16px 18px;
+    border-bottom: 1px solid #303030;
+  }
+  
+  .client-management tbody tr:hover {
+    background: #222;
+  }
+  
+  .client-management tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  /* Client status */
+  
+  .client-status {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .client-status.active {
+    background: #173225;
+    border: 1px solid #29573b;
+    color: #84d4a4;
+  }
+  
+  .client-status.inactive {
+    background: #3a2222;
+    border: 1px solid #613333;
+    color: #f29a9a;
+  }
+  
+  /* Notifications */
+  
+  .client-management [role="alert"] {
+    background: #351d1d;
+    color: #ff9a9a;
+    border: 1px solid #683434;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+  }
+  
+  .client-management [role="status"] {
+    background: #193323;
+    color: #91d8a9;
+    border: 1px solid #315a3e;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+  }
+  
+  /* Empty states */
+  
+  .client-management-empty {
+    color: #999;
+    font-size: 14px;
+    padding: 16px 0;
+  }
+  
+  /* Responsive design */
+  
+  @media (max-width: 768px) {
+    .client-management-section {
+      padding: 16px;
+    }
+  
+    .client-management form {
+      flex-direction: column;
+      align-items: stretch;
+    }
+  
+    .client-management-field {
+      width: 100%;
+      min-width: 0;
+    }
+  
+    .client-management button {
+      width: 100%;
+    }
+  }
+
+/* Analyst assignment form */
+
+.client-management-description {
+    color: #999;
+    font-size: 14px;
+    margin: -8px 0 24px;
+  }
+  
+  .client-management select {
+    background: #242424;
+    border: 1px solid #414141;
+    border-radius: 6px;
+    padding: 12px 14px;
+    color: #f5f5f5;
+    font-size: 14px;
+    width: 100%;
+    box-sizing: border-box;
+    cursor: pointer;
+  }
+  
+  .client-management select:focus {
+    outline: none;
+    border-color: #4d9cff;
+    box-shadow: 0 0 0 2px rgba(77, 156, 255, 0.15);
+  }
+  
+  .client-management select:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .client-management-hint {
+    color: #e6b969;
+    font-size: 13px;
+    margin: 14px 0 0;
+  }
+  
+  .client-management-section form button {
+    white-space: nowrap;
+  }
+  
+  

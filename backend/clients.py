@@ -167,3 +167,21 @@ def assign_analyst(
         "user_id": assignment.user_id,
         "client_id": assignment.client_id,
     }
+
+
+# Administrators can retrieve active analyst accounts
+# for client assignment management.
+@router.get("/analysts")
+def list_analysts(admin=Depends(require_admin)):
+    with get_connection() as connection:
+        rows = connection.execute("""
+            SELECT id, email, is_active
+            FROM users
+            WHERE role = 'analyst'
+              AND is_active = 1
+            ORDER BY email
+        """).fetchall()
+
+    return {
+        "analysts": [dict(row) for row in rows]
+    }

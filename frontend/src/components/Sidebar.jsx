@@ -1,6 +1,5 @@
 import "./Sidebar.css";
 import threatLensLogo from "../assets/threatlens-logo.png";
-import "./Sidebar.css";
 
 function Sidebar({
   currentPage,
@@ -71,6 +70,33 @@ function Sidebar({
           </button>
         </nav>
       </div>
+      {userRole === "admin" && (
+        <div className="sidebar-section">
+          <p className="sidebar-label">ADMINISTRATION</p>
+
+          <nav className="sidebar-nav">
+            <button
+              type="button"
+              className={`nav-item ${
+                currentPage === "admin" ? "active" : ""
+              }`}
+              onClick={() => onNavigate("admin")}
+            >
+              Admin Dashboard
+            </button>
+            <button
+              type="button"
+              className={`nav-item ${
+                currentPage === "client-management" ? "active" : ""
+              }`}
+              onClick={() => onNavigate("client-management")}
+            >
+              Client Management
+            </button>
+
+          </nav>
+        </div>
+      )}
 
       <div className="sidebar-user">
         <div className="user-avatar">
