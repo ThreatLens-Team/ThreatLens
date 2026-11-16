@@ -486,7 +486,7 @@ function App() {
             <ClientManagement />
           ) : currentPage === "user-management" &&
             user.role === "admin" ? (
-            <UserManagement />
+            <UserManagement currentUser={user}/>
           ) : currentPage === "overview" ? (
             <>
               <h2 className="tl-overview-section-title">

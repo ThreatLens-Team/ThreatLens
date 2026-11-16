@@ -132,4 +132,107 @@
       padding: 16px;
     }
   }
+
+
+/* User Management action buttons */
+
+.user-management-action {
+    padding: 9px 14px;
+    border-radius: 6px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    background: transparent;
+    white-space: nowrap;
+  }
+  
+  .user-management-action.deactivate {
+    color: #f29a9a;
+    border: 1px solid #794242;
+  }
+  
+  .user-management-action.deactivate:hover:not(:disabled) {
+    background: #351f1f;
+  }
+  
+  .user-management-action.activate {
+    color: #84d4a4;
+    border: 1px solid #397a38;
+  }
+  
+  .user-management-action.activate:hover:not(:disabled) {
+    background: #193323;
+  }
+  
+  .user-management-action:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .user-management-protected {
+    color: #999;
+    font-size: 13px;
+  }
+  
+  /* Confirmation dialog */
+  
+  .user-management-confirmation {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 20px;
+  }
+  
+  .user-management-confirmation-card {
+    width: 100%;
+    max-width: 460px;
+    padding: 28px;
+    background: #1c1c1c;
+    border: 1px solid #414141;
+    border-radius: 12px;
+    box-shadow: 0 16px 45px rgba(0, 0, 0, 0.5);
+  }
+  
+  .user-management-confirmation-card h3 {
+    font-size: 20px;
+    margin: 0 0 16px;
+    color: #f3f3f3;
+  }
+  
+  .user-management-confirmation-card p {
+    color: #bbb;
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-wrap: anywhere;
+  }
+  
+  .user-management-confirmation-actions {
+    display: flex;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 24px;
+  }
+  
+  .user-management-cancel {
+    background: #292929;
+    color: #eee;
+    border: 1px solid #454545;
+    border-radius: 6px;
+    padding: 9px 16px;
+    cursor: pointer;
+  }
+  
+  .user-management [role="status"] {
+    background: #193323;
+    color: #91d8a9;
+    border: 1px solid #315a3e;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-bottom: 18px;
+  }
   
