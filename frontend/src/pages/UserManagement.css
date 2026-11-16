@@ -1,0 +1,135 @@
+
+/* ThreatLens User Management */
+
+.user-management {
+    width: 100%;
+    color: #f3f3f3;
+  }
+  
+  .user-management h2 {
+    font-size: 24px;
+    font-weight: 700;
+    margin: 0 0 10px;
+  }
+  
+  .user-management > p {
+    color: #999;
+    font-size: 14px;
+    margin: 0 0 28px;
+  }
+  
+  .user-management-section {
+    background: #1a1a1a;
+    border: 1px solid #303030;
+    border-radius: 10px;
+    padding: 24px;
+    margin-bottom: 24px;
+  }
+  
+  .user-management-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+  
+  .user-management-header h3 {
+    font-size: 18px;
+    margin: 0;
+  }
+  
+  .user-management-header > span {
+    color: #999;
+    font-size: 13px;
+  }
+  
+  .user-management-table-wrapper {
+    width: 100%;
+    overflow-x: auto;
+  }
+  
+  .user-management table {
+    width: 100%;
+    border-collapse: collapse;
+    text-align: left;
+    font-size: 14px;
+  }
+  
+  .user-management th {
+    background: #202020;
+    color: #999;
+    padding: 15px 18px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    border-bottom: 1px solid #353535;
+    white-space: nowrap;
+  }
+  
+  .user-management td {
+    color: #ddd;
+    padding: 16px 18px;
+    border-bottom: 1px solid #303030;
+  }
+  
+  .user-management tbody tr:hover {
+    background: #222;
+  }
+  
+  .user-management tbody tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .user-role-badge,
+  .user-status-badge {
+    display: inline-block;
+    padding: 5px 10px;
+    border-radius: 5px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  
+  .user-role-badge.admin {
+    background: #242e40;
+    color: #9abdf7;
+    border: 1px solid #365176;
+  }
+  
+  .user-role-badge.analyst {
+    background: #303030;
+    color: #ccc;
+    border: 1px solid #474747;
+  }
+  
+  .user-status-badge.active {
+    background: #173225;
+    color: #84d4a4;
+    border: 1px solid #29573b;
+  }
+  
+  .user-status-badge.inactive {
+    background: #3a2222;
+    color: #f29a9a;
+    border: 1px solid #613333;
+  }
+  
+  .user-management-empty {
+    color: #999;
+    padding: 16px 0;
+  }
+  
+  .user-management [role="alert"] {
+    background: #351d1d;
+    color: #ff9a9a;
+    border: 1px solid #683434;
+    border-radius: 6px;
+    padding: 12px 16px;
+  }
+  
+  @media (max-width: 768px) {
+    .user-management-section {
+      padding: 16px;
+    }
+  }
+  

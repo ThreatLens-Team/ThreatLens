@@ -94,6 +94,17 @@ function Sidebar({
               Client Management
             </button>
 
+            <button
+              type="button"
+              className={`nav-item ${
+                currentPage === "user-management" ? "active" : ""
+              }`}
+              onClick={() => onNavigate("user-management")}
+            >
+              User Management
+            </button>
+
+
           </nav>
         </div>
       )}

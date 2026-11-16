@@ -10,6 +10,8 @@ from client_events import router as client_events_router
 from client_investigations import router as client_investigations_router
 from client_cases import router as client_cases_router
 
+from admin_users import router as admin_users_router
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     initialize_database()
@@ -33,6 +35,9 @@ app.include_router(auth_router)
 
 # Client management endpoints.
 app.include_router(clients_router)
+
+# Administrator user management endpoints.
+app.include_router(admin_users_router)
 
 # Authorized client-specific security events.
 app.include_router(client_events_router)

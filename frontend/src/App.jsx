@@ -14,6 +14,7 @@ import { getClientCases, openClientCase } from "./services/cases";
 import ClientManagement from "./pages/ClientManagement";
 
 import AdminDashboard from "./pages/AdminDashboard";
+import UserManagement from "./pages/UserManagement";
 
 import "./App.css";
 
@@ -317,13 +318,13 @@ function App() {
 
   const handleNavigate = (page) => {
     const allowedPages = ["overview", "investigations"];
-  
+
     if (user?.role === "admin") {
-      allowedPages.push("admin", "client-management");
+      allowedPages.push("admin", "client-management","user-management" );
     }
-  
+
     if (!allowedPages.includes(page)) return;
-  
+
     setSelectedEvent(null);
     setSelectedCase(null);
     setCurrentPage(page);
@@ -398,6 +399,8 @@ function App() {
             ? "Administration"
             : currentPage === "client-management"
             ? "Client Management"
+            : currentPage === "user-management"
+            ? "User Management"
             : "Security Investigations"}
           </h2>
         </header>
@@ -408,8 +411,9 @@ function App() {
               {authError}
             </p>
           )}
-          
-          {currentPage !== "admin" && currentPage !== "client-management" && (
+
+          {currentPage !== "admin" && currentPage
+          !== "client-management" && currentPage !== "user-management" && (
           <div
             className="client-workspace"
             style={{
@@ -453,7 +457,7 @@ function App() {
           )}
 
           {currentPage !== "admin" &&
-            currentPage !== "client-management" &&
+            currentPage !== "client-management" && currentPage !== "user-management" &&
             clientsLoading && (
               <p className="client-message" role="status">
                 Loading client workspaces...
@@ -461,7 +465,7 @@ function App() {
             )}
 
           {currentPage !== "admin" &&
-            currentPage !== "client-management" &&
+            currentPage !== "client-management" && currentPage !== "user-management" &&
             clientsError && (
               <p className="client-message" role="alert">
                 Unable to load clients: {clientsError}
@@ -480,6 +484,9 @@ function App() {
           ) : currentPage === "client-management" &&
             user.role === "admin" ? (
             <ClientManagement />
+          ) : currentPage === "user-management" &&
+            user.role === "admin" ? (
+            <UserManagement />
           ) : currentPage === "overview" ? (
             <>
               <h2 className="tl-overview-section-title">
