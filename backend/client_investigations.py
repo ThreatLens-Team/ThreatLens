@@ -18,6 +18,8 @@ from auth.routes import get_current_user, check_request_origin
 from client_events import get_authorized_client, get_client_events
 from ai_agent import investigate_event
 
+from privacy_scenarios import build_privacy_safe_scenario
+from scenario_severity import classify_scenario
 
 logger = logging.getLogger(__name__)
 
@@ -207,19 +209,25 @@ async def investigate_client_event(
                 exc_info=True,
             )
 
-        # Keep the existing limited evidence policy.
-        # No full raw Splunk record, passwords, or
-        # direct account identifier is sent to OpenAI.
-        safe_event = {
-            "data_source": source,
-            "event_type": event.get("event_type"),
-            "event_result": event.get("status", "UNKNOWN"),
-            "event_timestamp": event.get("timestamp"),
-            "description": event.get("description"),
-            "risk_level": event.get("risk_level", "unknown"),
+
+        # Convert the security event into a privacy-safe scenario.
+        # Do not forward raw descriptions, usernames, IP
+        # addresses, company information, or exact timestamps.
+
+        scenario = build_privacy_safe_scenario(event)
+
+        # Calculate a preliminary severity using verified
+        # scenario indicators. Missing context stays Unknown.
+        severity_assessment = classify_scenario(scenario)
+
+        # Send only approved scenario information to OpenAI.
+        ai_payload = {
+            **scenario,
+            "severity_assessment": severity_assessment,
         }
 
-        investigation = await investigate_event(safe_event)
+        investigation = await investigate_event(ai_payload)
+
 
         if (
             not isinstance(investigation, str)
