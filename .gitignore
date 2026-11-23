@@ -223,3 +223,6 @@ frontend/dist/
 
 # macOS
 .DS_Store
+
+# Local SQLite database backups
+/backend/backups/

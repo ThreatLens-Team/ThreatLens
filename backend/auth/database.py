@@ -1,4 +1,3 @@
-
 import sqlite3
 from pathlib import Path
 
@@ -41,7 +40,7 @@ def initialize_database():
             )
         """)
 
-        # New: Client companies monitored by ThreatLens
+        # Client companies monitored by ThreatLens.
         connection.execute("""
             CREATE TABLE IF NOT EXISTS clients (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -52,7 +51,7 @@ def initialize_database():
             )
         """)
 
-        # New: Assign analysts to specific clients
+        # Assign analysts to specific clients.
         connection.execute("""
             CREATE TABLE IF NOT EXISTS analyst_client_assignments (
                 user_id INTEGER NOT NULL,
@@ -70,8 +69,9 @@ def initialize_database():
                     ON DELETE CASCADE
             )
         """)
-	        # Investigation cases opened by ThreatLens analysts.
-        # Each investigation belongs to one user and one client.
+
+        # Existing investigation cases.
+        # Each case belongs to one analyst and one client.
         connection.execute("""
             CREATE TABLE IF NOT EXISTS investigation_cases (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -79,7 +79,6 @@ def initialize_database():
                 user_id INTEGER NOT NULL,
                 client_id INTEGER NOT NULL,
                 event_id TEXT NOT NULL,
-
                 event_snapshot TEXT NOT NULL,
 
                 status TEXT NOT NULL DEFAULT 'investigating'
@@ -108,10 +107,9 @@ def initialize_database():
             CREATE INDEX IF NOT EXISTS idx_investigation_cases_owner
             ON investigation_cases(user_id, client_id, status)
         """)
-       
-        # Add persistent AI investigation storage.
-        # Existing investigation cases remain unchanged.
 
+        # Existing persistent AI investigation storage.
+        # Add missing columns without deleting existing cases.
         ai_columns = {
             "ai_result": "TEXT",
             "ai_state": (
@@ -137,5 +135,116 @@ def initialize_database():
                     f"ALTER TABLE investigation_cases "
                     f"ADD COLUMN {column_name} {column_definition}"
                 )
+
+        # ------------------------------------------
+        # Assessment Report Workflow
+        # ------------------------------------------
+
+        # One editable assessment report per investigation.
+        # This is separate from the original AI output.
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS assessment_reports (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                case_id INTEGER NOT NULL UNIQUE,
+
+                draft_assessment TEXT NOT NULL DEFAULT '',
+                draft_findings TEXT NOT NULL DEFAULT '',
+                draft_recommendations TEXT NOT NULL DEFAULT '',
+                analyst_notes TEXT NOT NULL DEFAULT '',
+
+                status TEXT NOT NULL DEFAULT 'draft'
+                    CHECK(status IN (
+                        'draft',
+                        'submitted',
+                        'approved',
+                        'needs_revision'
+                    )),
+
+                revision_number INTEGER NOT NULL DEFAULT 0
+                    CHECK(revision_number >= 0),
+
+                created_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                updated_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                FOREIGN KEY (case_id)
+                    REFERENCES investigation_cases(id)
+                    ON DELETE CASCADE
+            )
+        """)
+
+        # Preserve each submitted version and its review decision.
+        # Submitted content should not be overwritten by the API.
+        connection.execute("""
+            CREATE TABLE IF NOT EXISTS assessment_report_versions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+                report_id INTEGER NOT NULL,
+                revision_number INTEGER NOT NULL
+                    CHECK(revision_number > 0),
+
+                submitted_assessment TEXT NOT NULL,
+                submitted_findings TEXT NOT NULL,
+                submitted_recommendations TEXT NOT NULL,
+                submitted_notes TEXT NOT NULL,
+
+                ai_result_snapshot TEXT,
+
+                submitted_by INTEGER,
+                submitted_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+
+                decision TEXT NOT NULL DEFAULT 'pending'
+                    CHECK(decision IN (
+                        'pending',
+                        'approved',
+                        'needs_revision'
+                    )),
+
+                reviewer_id INTEGER,
+                reviewed_at TEXT,
+                feedback TEXT,
+
+                UNIQUE(report_id, revision_number),
+
+                FOREIGN KEY (report_id)
+                    REFERENCES assessment_reports(id)
+                    ON DELETE CASCADE,
+
+                FOREIGN KEY (submitted_by)
+                    REFERENCES users(id)
+                    ON DELETE SET NULL,
+
+                FOREIGN KEY (reviewer_id)
+                    REFERENCES users(id)
+                    ON DELETE SET NULL
+            )
+        """)
+
+        # Help the administrator retrieve pending and
+        # previously reviewed assessments efficiently.
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_assessment_reports_status
+            ON assessment_reports(status)
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_assessment_versions_report
+            ON assessment_report_versions(
+                report_id,
+                revision_number
+            )
+        """)
+
+        connection.execute("""
+            CREATE INDEX IF NOT EXISTS idx_assessment_versions_decision
+            ON assessment_report_versions(decision)
+        """)
+
+        # Only one pending submission per report is allowed.
+        connection.execute("""
+            CREATE UNIQUE INDEX IF NOT EXISTS idx_assessment_one_pending
+            ON assessment_report_versions(report_id)
+            WHERE decision = 'pending'
+        """)
 
         connection.commit()
