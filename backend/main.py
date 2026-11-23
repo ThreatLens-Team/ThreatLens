@@ -9,6 +9,7 @@ from clients import router as clients_router
 from client_events import router as client_events_router
 from client_investigations import router as client_investigations_router
 from client_cases import router as client_cases_router
+from assessment_reports import router as assessment_reports_router
 
 from admin_users import router as admin_users_router
 
@@ -44,6 +45,7 @@ app.include_router(client_events_router)
 app.include_router(client_investigations_router)
 
 app.include_router(client_cases_router)
+app.include_router(assessment_reports_router)
 
 @app.get("/api/health")
 def health():
