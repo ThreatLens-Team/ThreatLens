@@ -105,6 +105,18 @@ function Sidebar({
             </button>
 
 
+            <button
+              type="button"
+              className={`nav-item ${
+                currentPage === "assessment-reviews" ? "active" : ""
+              }`}
+              onClick={() => onNavigate("assessment-reviews")}
+            >
+              Assessment Reviews
+            </button>
+
+
+
           </nav>
         </div>
       )}

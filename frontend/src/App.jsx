@@ -15,6 +15,7 @@ import ClientManagement from "./pages/ClientManagement";
 
 import AdminDashboard from "./pages/AdminDashboard";
 import UserManagement from "./pages/UserManagement";
+import AssessmentReviews from "./pages/AssessmentReviews";
 
 import "./App.css";
 
@@ -320,7 +321,7 @@ function App() {
     const allowedPages = ["overview", "investigations"];
 
     if (user?.role === "admin") {
-      allowedPages.push("admin", "client-management","user-management" );
+      allowedPages.push("admin", "client-management","user-management", "assessment-reviews" );
     }
 
     if (!allowedPages.includes(page)) return;
@@ -359,6 +360,12 @@ function App() {
 
     return { ...event, status: workflowStatus };
   });
+  const isAdminPage = [
+    "admin",
+    "client-management",
+    "user-management",
+    "assessment-reviews",
+  ].includes(currentPage);
 
   if (authLoading) {
     return (
@@ -401,6 +408,8 @@ function App() {
             ? "Client Management"
             : currentPage === "user-management"
             ? "User Management"
+            : currentPage === "assessment-reviews"
+            ? "Assessment Reviews"
             : "Security Investigations"}
           </h2>
         </header>
@@ -412,8 +421,7 @@ function App() {
             </p>
           )}
 
-          {currentPage !== "admin" && currentPage
-          !== "client-management" && currentPage !== "user-management" && (
+          {!isAdminPage && (
           <div
             className="client-workspace"
             style={{
@@ -456,24 +464,21 @@ function App() {
           </div>
           )}
 
-          {currentPage !== "admin" &&
-            currentPage !== "client-management" && currentPage !== "user-management" &&
-            clientsLoading && (
+          {!isAdminPage && clientsLoading && (
               <p className="client-message" role="status">
                 Loading client workspaces...
               </p>
             )}
 
-          {currentPage !== "admin" &&
-            currentPage !== "client-management" && currentPage !== "user-management" &&
-            clientsError && (
+          {!isAdminPage && clientsError && (
               <p className="client-message" role="alert">
                 Unable to load clients: {clientsError}
               </p>
             )}
-          {!clientsLoading && !clientsError && clients.length === 0 &&
-            currentPage !== "admin" &&
-            currentPage !== "client-management" && (
+          {!isAdminPage &&
+            !clientsLoading &&
+            !clientsError &&
+            clients.length === 0 && (
               <p className="client-message">
                 No client workspaces are assigned to your account.
               </p>
@@ -487,6 +492,9 @@ function App() {
           ) : currentPage === "user-management" &&
             user.role === "admin" ? (
             <UserManagement currentUser={user}/>
+          ) : currentPage === "assessment-reviews" &&
+            user.role === "admin" ? (
+            <AssessmentReviews />
           ) : currentPage === "overview" ? (
             <>
               <h2 className="tl-overview-section-title">
