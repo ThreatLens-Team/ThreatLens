@@ -308,3 +308,102 @@
     padding: 12px 10px;
   }
 }
+
+
+/* Analyst Reports Needing Revision */
+
+.case-revisions-panel {
+  border: 1px solid #59472c;
+  border-radius: 10px;
+  padding: 20px;
+  margin-bottom: 30px;
+  background: #201d18;
+}
+
+.case-revisions-heading,
+.case-revision-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.case-revisions-heading {
+  margin-bottom: 18px;
+}
+
+.case-revisions-heading h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+}
+
+.case-revisions-heading p {
+  color: #aaa;
+  font-size: 13px;
+  margin: 0;
+}
+
+.case-revisions-demo-badge {
+  color: #e9bd62;
+  background: #3c2c17;
+  border-radius: 6px;
+  padding: 7px 11px;
+  font-size: 12px;
+}
+
+.case-revision-card {
+  background: #272727;
+  border: 1px solid #414141;
+  border-radius: 8px;
+  padding: 18px;
+}
+
+.case-revision-status {
+  color: #e9bd62;
+  background: #3c2c17;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+}
+
+.case-revision-meta {
+  color: #aaa;
+  font-size: 13px;
+  margin: 10px 0 18px;
+}
+
+.case-revision-feedback {
+  border-left: 3px solid #e9bd62;
+  padding: 8px 14px;
+  margin-bottom: 18px;
+}
+
+.case-revision-feedback strong {
+  font-size: 13px;
+}
+
+.case-revision-feedback p,
+.case-revision-details p {
+  color: #ccc;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.case-revision-details {
+  margin-top: 18px;
+  padding: 16px;
+  border-radius: 8px;
+  background: #303030;
+}
+
+.case-revision-details h3 {
+  font-size: 15px;
+  margin: 0 0 10px;
+}
+
+@media (max-width: 768px) {
+  .case-revisions-panel {
+    padding: 14px;
+  }
+}
